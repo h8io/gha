@@ -5,7 +5,6 @@ description: GitHub workflows and actions linter
 runs:
   using: composite
   steps:
-    -
     - name: Workflows and actions linter
       shell: bash
       run: |
