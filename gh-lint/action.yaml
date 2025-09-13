@@ -1,0 +1,33 @@
+name: GitHub Actions and Workflows Linter
+author: Eshu
+description: GitHub workflows and actions linter
+
+runs:
+  using: composite
+  steps:
+    - uses: actions/checkout@v5
+    - name: Workflows and actions linter
+      shell: bash
+      run: |
+        set -euo pipefail
+        shopt -s globstar extglob nullglob
+        WORKFLOWS=(**/workflows/**/*.y?(a)ml)
+        ACTIONS=(**/actions/**/action.y?(a)ml)
+
+        function actionlint() {
+          mkdir -p ./bin
+          curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
+            | bash -s -- latest ./bin
+          ./bin/actionlint -color -shellcheck=shellcheck "$@"
+        }
+
+        if ((${#ACTIONS[@]})); then
+          actionlint "${WORKFLOWS[@]}" "${ACTIONS[@]}"
+          curl -sSfL https://raw.githubusercontent.com/mpalmer/action-validator/main/download.sh \
+            | bash -s -- -b ./bin
+          ./bin/action-validator "${ACTIONS[@]}"
+        else
+          if ((${#WORKFLOWS[@]})); then
+            actionlint "${WORKFLOWS[@]}"
+          fi
+        fi
