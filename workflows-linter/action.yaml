@@ -12,6 +12,5 @@ runs:
         shopt -s globstar extglob nullglob
         WORKFLOWS=(**/workflows/**/*.y?(a)ml)
         mkdir -p ./bin
-        curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
-          | bash -s -- latest ./bin
+        go install github.com/rhysd/actionlint/cmd/actionlint@latest
         ./bin/actionlint -color -shellcheck=shellcheck "$@"
