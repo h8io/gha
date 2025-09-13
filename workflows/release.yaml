@@ -1,0 +1,62 @@
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: Maximum time (in minutes) before the job is canceled
+        type: number
+        default: 15
+      java-version:
+        description: Java version
+        type: number
+        default: 17
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - name: Check Sonatype token
+        uses: h8io/gha/check-sonatype-token@v1
+        with:
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - name: Check tag
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          DEFAULT_BRANCH_COMMIT=$(git rev-parse "${{ github.event.repository.default_branch }}")
+          echo "Default branch: $DEFAULT_BRANCH_COMMIT"
+          TAG_COMMIT=$(git rev-parse "$TAG"^{})
+          echo "$TAG: $TAG_COMMIT"
+          if [ "$DEFAULT_BRANCH_COMMIT" != "$TAG_COMMIT" ]; then
+            echo "Default branch and $TAG should be the same at the moment of the release" >&2
+            exit 1
+          fi
+
+      - uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:${{ inputs.java-version }}
+
+      - name: Release to Maven Central
+        env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: sbt ci-release
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          TAG="${GITHUB_REF#refs/tags/}"
+          gh release create "$TAG" --title "$TAG" --generate-notes --latest

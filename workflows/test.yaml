@@ -1,0 +1,41 @@
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: Maximum time (in minutes) before the job is canceled
+        type: number
+        default: 5
+      java-version:
+        description: Java version
+        type: number
+        default: 17
+      is-plugin:
+        description: Is this project an SBT plugin?
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  pull-requests: write
+
+concurrency:
+  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    env:
+      CI: true
+    steps:
+      - uses: actions/checkout@v5
+      - uses: coursier/cache-action@v6
+      - uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:${{ inputs.java-version }}
+      - run: ./test.sh
+      - uses: h8io/gha/publish-scoverage-summary@v1
+        with:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

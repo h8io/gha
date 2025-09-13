@@ -1,0 +1,14 @@
+name: Floating tags
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps: h8io/actions/gha/floating-tags@master

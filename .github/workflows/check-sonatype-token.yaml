@@ -1,0 +1,17 @@
+name: Check Sonatype token
+
+on:
+  workflow_dispatch: {}
+  workflow_call:
+
+permissions: {}
+
+jobs:
+  check-sonatype-token:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: h8io/gha/check-sonatype-token@v1
+        with:
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}

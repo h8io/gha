@@ -21,7 +21,15 @@ jobs:
         run: |
           set -euo pipefail
           shopt -s globstar extglob nullglob
-          ACTIONS=(./*/action.y?(a)ml)
+
+          WORKFLOWS=(./?(.github)/workflows/**/*.y?(a)ml)
+          echo "${WORKFLOWS[@]}"
+          mkdir -p ./bin
+          curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
+            | bash -s -- latest ./bin
+          ./bin/actionlint -color -shellcheck=shellcheck "${WORKFLOWS[@]}"
+
+          ACTIONS=(./actions/**/action.y?(a)ml)
           if ((${#ACTIONS[@]} == 0)); then
             echo "No composite actions found; skipping validation." >&2
             exit 1
