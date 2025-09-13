@@ -19,7 +19,7 @@ jobs:
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
       - name: Check Sonatype token
-        uses: h8io/gha/actions/check-sonatype-token@v1
+        uses: h8io/gha/actions/check-sonatype-token@v2
         with:
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}

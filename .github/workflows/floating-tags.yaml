@@ -12,4 +12,4 @@ jobs:
   floating-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: h8io/gha/actions/floating-tags@v1
+      - uses: h8io/gha/actions/floating-tags@v2
