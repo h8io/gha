@@ -12,7 +12,7 @@ runs:
         set -euo pipefail
         shopt -s globstar extglob nullglob
         WORKFLOWS=(**/workflows/**/*.y?(a)ml)
-        ACTIONS=(**/actions/**/action.y?(a)ml)
+        ACTIONS=(**/action.y?(a)ml)
 
         function actionlint() {
           mkdir -p ./bin
