@@ -16,7 +16,7 @@ jobs:
     timeout-minutes: 1
     steps:
       - uses: actions/checkout@v5
-      - uses: h8io/gha/workflows-linter@master
+      - uses: h8io/gha/workflows-linter@v1
       - shell: bash
         run: |
           set -euo pipefail
