@@ -22,8 +22,6 @@ jobs:
           set -euo pipefail
           shopt -s globstar extglob nullglob
           ACTIONS=(./*/action.y?(a)ml)
-          mkdir -p ./bin
-          curl -sSfL https://raw.githubusercontent.com/mpalmer/action-validator/main/download.sh \
-            | bash -s -- -b ./bin
-          ./bin/action-validator "${ACTIONS[@]}"
-
+          npm install -g @action-validator/core @action-validator/cli
+          action-validator -h
+          action-validator "${ACTIONS[@]}"
