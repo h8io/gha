@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 1
     steps:
-      - uses: h8io/gha/check-sonatype-token@v1
+      - uses: h8io/gha/actions/check-sonatype-token@v1
         with:
           username: ${{ secrets.SONATYPE_USERNAME }}
           password: ${{ secrets.SONATYPE_PASSWORD }}
