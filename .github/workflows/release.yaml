@@ -21,6 +21,9 @@ jobs:
         run: |
           set -euo pipefail
           
+          git config --global user.name "${{ github.actor }}"
+          git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
+          
           MAJOR=${TAG%%.*}
           git tag -fa $MAJOR -m $MAJOR "$TAG^{commit}"
           git push origin -f "$MAJOR"
