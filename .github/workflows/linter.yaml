@@ -21,7 +21,7 @@ jobs:
           set -euo pipefail
           shopt -s globstar extglob nullglob
 
-          WORKFLOWS=(./?(.github)/workflows/**/*.y?(a)ml)
+          WORKFLOWS=(.github/workflows/**/*.y?(a)ml)
           echo "${WORKFLOWS[@]}"
           mkdir -p ./bin
           curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
