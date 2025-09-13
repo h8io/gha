@@ -9,6 +9,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  floating-tags:
     runs-on: ubuntu-latest
-    steps: h8io/actions/gha/floating-tags@master
+    steps:
+      - uses: h8io/actions/gha/floating-tags@master
