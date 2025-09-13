@@ -1,0 +1,29 @@
+name: GitHub Actions and Workflows Linter
+
+on:
+  pull_request:
+    branches: [ master ]
+  push:
+    branches: [ master ]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 1
+    steps:
+      - uses: actions/checkout@v5
+      - uses: h8io/gha/workflows-linter@master
+      - shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s globstar extglob nullglob
+          ACTIONS=(./*/action.y?(a)ml)
+          mkdir -p ./bin
+          curl -sSfL https://raw.githubusercontent.com/mpalmer/action-validator/main/download.sh \
+            | bash -s -- -b ./bin
+          ./bin/action-validator "${ACTIONS[@]}"
+

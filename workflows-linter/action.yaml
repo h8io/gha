@@ -1,0 +1,17 @@
+name: GitHub Workflows Linter
+author: Eshu
+description: GitHub workflows and actions linter
+
+runs:
+  using: composite
+  steps:
+    - name: Workflows and actions linter
+      shell: bash
+      run: |
+        set -euo pipefail
+        shopt -s globstar extglob nullglob
+        WORKFLOWS=(**/workflows/**/*.y?(a)ml)
+        mkdir -p ./bin
+        curl -sSfL https://raw.githubusercontent.com/rhysd/actionlint/main/scripts/download-actionlint.bash \
+          | bash -s -- latest ./bin
+        ./bin/actionlint -color -shellcheck=shellcheck "$@"
