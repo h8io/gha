@@ -22,5 +22,12 @@ jobs:
           set -euo pipefail
           shopt -s globstar extglob nullglob
           ACTIONS=(./*/action.y?(a)ml)
-          npx --yes @action-validator/cli "${ACTIONS[@]}"
-  
+          if ((${#ACTIONS[@]} == 0)); then
+            echo "No composite actions found; skipping validation." >&2
+            exit 1
+          else
+            for ACTION in "${ACTIONS[@]}"; do
+              echo "Validating $f"
+              npx --yes @action-validator/cli "$ACTION"
+            done
+          fi
