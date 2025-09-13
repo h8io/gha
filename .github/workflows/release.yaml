@@ -24,10 +24,10 @@ jobs:
           git config --global user.name "${{ github.actor }}"
           git config --global user.email "${{ github.actor_id }}+${{ github.actor }}@users.noreply.github.com"
           
-          MAJOR=${TAG%%.*}
-          git tag -fa $MAJOR -m $MAJOR "$TAG^{commit}"
+          MAJOR="${TAG%%.*}"
+          git tag -fa "$MAJOR" -m "$MAJOR" "$TAG"^{}
           git push origin -f "$MAJOR"
           
-          MINOR=${TAG%.*}
-          git tag -fa $MINOR -m $MINOR $TAG^{commit}
+          MINOR="${TAG%.*}"
+          git tag -fa "$MINOR" -m "$MINOR" "$TAG"^{}
           git push origin -f "$MINOR"
