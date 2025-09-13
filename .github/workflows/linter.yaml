@@ -27,7 +27,7 @@ jobs:
             exit 1
           else
             for ACTION in "${ACTIONS[@]}"; do
-              echo "Validating $f"
+              echo "Validating $ACTION"
               npx --yes @action-validator/cli "$ACTION"
             done
           fi
