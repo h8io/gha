@@ -1,0 +1,30 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - shell: bash
+        env:
+          TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          
+          MAJOR=${TAG%%.*}
+          git tag -fa $MAJOR -m $MAJOR "$TAG^{commit}"
+          git push origin -f "$MAJOR"
+          
+          MINOR=${TAG%.*}
+          git tag -fa $MINOR -m $MINOR $TAG^{commit}
+          git push origin -f "$MINOR"
