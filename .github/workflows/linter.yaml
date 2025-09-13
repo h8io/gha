@@ -22,6 +22,5 @@ jobs:
           set -euo pipefail
           shopt -s globstar extglob nullglob
           ACTIONS=(./*/action.y?(a)ml)
-          npm install -g @action-validator/core @action-validator/cli
-          action-validator -h
-          action-validator "${ACTIONS[@]}"
+          npx --yes @action-validator/cli "${ACTIONS[@]}"
+  
