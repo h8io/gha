@@ -19,7 +19,7 @@ permissions:
   pull-requests: write
 
 concurrency:
-  group: ${{ github.repository }}-${{ github.workflow }}-${{ github.ref }}
+  group: gha:test~${{ github.repository }}~${{ github.workflow }}~${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
