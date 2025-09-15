@@ -4,7 +4,7 @@ on:
       timeout-minutes:
         description: Maximum time (in minutes) before the job is canceled
         type: number
-        default: 15
+        default: 60
       java-version:
         description: Java version
         type: number
