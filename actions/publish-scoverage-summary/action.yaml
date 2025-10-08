@@ -48,7 +48,7 @@ runs:
     - name: Upload coverage artifact
       uses: actions/upload-artifact@v4
       with:
-        name: scoverage-report
+        name: scoverage-report-${{ github.repository }}-${{ github.base_ref }}
         path: ${{ inputs.report-path }}
         retention-days: ${{ inputs.retention-days }}
     - name: Publish scoverage summary
