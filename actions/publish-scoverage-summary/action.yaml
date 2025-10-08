@@ -34,7 +34,6 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        shopt -s globstar
         rm -rf "${{ inputs.report-path }}"
         mkdir -p "${{ inputs.report-path }}"
         mapfile -d '' dirs < <(find . -type d -path '*/target/*/scoverage-report' -print0)
