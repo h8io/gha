@@ -10,10 +10,10 @@ inputs:
     description: Summary filename
     required: false
     default: scoverage-summary.md
-  report-file:
+  report-path:
     description: Coverage archive filename
     required: false
-    default: scoverage-report.zip
+    default: scoverage-report
   retention-days:
     description: Artifact retention (days, 1–90)
     required: false
@@ -30,20 +30,27 @@ runs:
         shopt -s globstar
         echo "# ${{ github.event.pull_request.head.sha }}" > "${{ inputs.summary-file }}"
         cat $(ls ./**/target/**/scoverage-summary/gfm.md | sort) >> "${{ inputs.summary-file }}"
-    - name: Create coverage archive (zip)
-      id: archive
+    - name: Collect reports
       shell: bash
       run: |
         set -euo pipefail
         shopt -s globstar
-        mapfile -d '' dirs < <(find . -path '**/target/scala-*/scoverage-report' -type d -print0)
-        (( ${#dirs[@]} )) || { echo "No scoverage-report directories found"; exit 1; }
-        zip -r ${{ inputs.report-file }} "${dirs[@]}"
+        rm -rf "${{ inputs.report-path }}"
+        mkdir -p "${{ inputs.report-path }}"
+        mapfile -d '' dirs < <(find . -type d -path '*/target/*/scoverage-report' -print0)
+        (( ${#dirs[@]} )) || { echo "No scoverage-report directories found"; exit 1; }  
+        for d in "${dirs[@]}"; do
+          rel="${d#./}"
+          out="${{ inputs.report-path }}/$(printf %s "$rel" | sed -E 's#(^|/)target/#\1#')"
+          mkdir -p "$out"
+          rsync -a --delete "$d/" "$out/"
+          echo "Copied: $d -> $out"
+        done
     - name: Upload coverage artifact
       uses: actions/upload-artifact@v4
       with:
-        name: ${{ inputs.report-file }}
-        path: ${{ inputs.report-file }}
+        name: scoverage-report
+        path: ${{ inputs.report-path }}
         retention-days: ${{ inputs.retention-days }}
     - name: Publish scoverage summary
       shell: bash
