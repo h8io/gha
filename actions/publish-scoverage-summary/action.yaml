@@ -6,14 +6,24 @@ inputs:
   GITHUB_TOKEN:
     description: secrets.GITHUB_TOKEN
     required: true
+  summary-file:
+    description: Summary filename
+    required: false
+    default: scoverage-summary.md
+  report-file:
+    description: Coverage archive filename
+    required: false
+    default: scoverage-report.zip
+  retention-days:
+    description: Artifact retention (days, 1–90)
+    required: false
+    default: "3"
 
 runs:
   using: composite
   steps:
-    - name: Publish scoverage summary
+    - name: Create scoverage summary
       if: ${{ github.event.pull_request }}
-      env:
-        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       shell: bash
       run: |
         set -euo pipefail
@@ -22,7 +32,29 @@ runs:
           echo "GitHub token undefined or empty" >&2
           exit 1
         fi
-        SUMMARY_FILE=scoverage-summary.md
-        echo "# ${{ github.event.pull_request.head.sha }}" > $SUMMARY_FILE
-        cat $(ls ./**/target/**/scoverage-summary/gfm.md | sort) >> $SUMMARY_FILE
-        gh pr comment "${{ github.event.pull_request.number }}" --body-file $SUMMARY_FILE
+        echo "# ${{ github.event.pull_request.head.sha }}" > "${{ inputs.summary-file }}"
+        cat $(ls ./**/target/**/scoverage-summary/gfm.md | sort) >> "${{ inputs.summary-file }}"
+    - name: Create coverage archive (zip)
+      id: archive
+      shell: bash
+      run: |
+        set -euo pipefail
+        mapfile -d '' dirs < <(find . -path '*/target/scala-*/scoverage-report' -type d -print0)
+        (( ${#dirs[@]} )) || { echo "No scoverage-report directories found"; exit 1; }
+        zip -r ${{ inputs.report-file }} "${dirs[@]}"
+    - name: Upload coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.report-file }}
+        path: ${{ inputs.report-file }}
+        retention-days: ${{ inputs.retention-days }}
+    - name: Publish scoverage summary
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
+      run: |
+        {
+          echo
+          echo "[Download full HTML report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
+        } >> "${{ inputs.summary-file }}"
+        gh pr comment "${{ github.event.pull_request.number }}" --body-file ${{ inputs.summary-file }}
