@@ -26,8 +26,6 @@ jobs:
   test:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    env:
-      CI: true
     steps:
       - uses: actions/checkout@v5
       - uses: coursier/cache-action@v6
