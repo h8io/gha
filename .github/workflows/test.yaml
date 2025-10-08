@@ -34,6 +34,6 @@ jobs:
           apps: sbt
           jvm: temurin:${{ inputs.java-version }}
       - run: ./test.sh
-      - uses: h8io/gha/actions/publish-scoverage-summary@v2
+      - uses: h8io/gha/actions/publish-scoverage-summary@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
