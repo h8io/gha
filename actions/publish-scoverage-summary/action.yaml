@@ -28,10 +28,6 @@ runs:
       run: |
         set -euo pipefail
         shopt -s globstar
-        if [ -z "${GITHUB_TOKEN:-}" ]; then
-          echo "GitHub token undefined or empty" >&2
-          exit 1
-        fi
         echo "# ${{ github.event.pull_request.head.sha }}" > "${{ inputs.summary-file }}"
         cat $(ls ./**/target/**/scoverage-summary/gfm.md | sort) >> "${{ inputs.summary-file }}"
     - name: Create coverage archive (zip)
@@ -39,7 +35,8 @@ runs:
       shell: bash
       run: |
         set -euo pipefail
-        mapfile -d '' dirs < <(find . -path '*/target/scala-*/scoverage-report' -type d -print0)
+        shopt -s globstar
+        mapfile -d '' dirs < <(find . -path ./**/target/scala-*/scoverage-report -type d -print0)
         (( ${#dirs[@]} )) || { echo "No scoverage-report directories found"; exit 1; }
         zip -r ${{ inputs.report-file }} "${dirs[@]}"
     - name: Upload coverage artifact
@@ -53,6 +50,10 @@ runs:
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
       run: |
+        if [ -z "${GITHUB_TOKEN:-}" ]; then
+          echo "GitHub token undefined or empty" >&2
+          exit 1
+        fi
         {
           echo
           echo "[Download full HTML report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
