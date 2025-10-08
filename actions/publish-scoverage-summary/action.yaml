@@ -52,6 +52,7 @@ runs:
         path: ${{ inputs.report-path }}
         retention-days: ${{ inputs.retention-days }}
     - name: Publish scoverage summary
+      if: ${{ github.event.pull_request }}
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
