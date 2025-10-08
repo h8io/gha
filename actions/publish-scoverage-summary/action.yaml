@@ -36,7 +36,7 @@ runs:
       run: |
         set -euo pipefail
         shopt -s globstar
-        mapfile -d '' dirs < <(find . -path ./**/target/scala-*/scoverage-report -type d -print0)
+        mapfile -d '' dirs < <(find . -path '**/target/scala-*/scoverage-report' -type d -print0)
         (( ${#dirs[@]} )) || { echo "No scoverage-report directories found"; exit 1; }
         zip -r ${{ inputs.report-file }} "${dirs[@]}"
     - name: Upload coverage artifact
