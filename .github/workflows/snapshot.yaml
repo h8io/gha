@@ -1,0 +1,42 @@
+on:
+  workflow_call:
+    inputs:
+      timeout-minutes:
+        description: Maximum time (in minutes) before the job is canceled
+        type: number
+        default: 60
+      java-version:
+        description: Java version
+        type: number
+        default: 17
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    steps:
+      - name: Check Sonatype token
+        uses: h8io/gha/actions/check-sonatype-token@v2
+        with:
+          username: ${{ secrets.SONATYPE_USERNAME }}
+          password: ${{ secrets.SONATYPE_PASSWORD }}
+
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.repository.default_branch }}
+
+      - uses: coursier/setup-action@v1
+        with:
+          apps: sbt
+          jvm: temurin:${{ inputs.java-version }}
+
+      - env:
+          PGP_SECRET: ${{ secrets.PGP_SECRET }}
+          PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
+          SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
+          SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
+        run: sbt +clean +test ci-release
