@@ -14,7 +14,7 @@ permissions:
   contents: write
 
 jobs:
-  release:
+  snapshot:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
     steps:
