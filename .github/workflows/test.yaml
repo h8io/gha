@@ -13,6 +13,10 @@ on:
         description: Is this project an SBT plugin?
         type: boolean
         default: false
+      publish-scoverage-summary:
+        description: Publish Scoverage summary as a comment to the PR?
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -34,6 +38,7 @@ jobs:
           apps: sbt
           jvm: temurin:${{ inputs.java-version }}
       - run: ./test.sh
-      - uses: h8io/gha/actions/publish-scoverage-summary@v3
+      - if: ${{ inputs.publish-scoverage-summary }}
+        uses: h8io/gha/actions/publish-scoverage-summary@v3
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
