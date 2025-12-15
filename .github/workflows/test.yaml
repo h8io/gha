@@ -37,5 +37,5 @@ jobs:
           apps: sbt
           jvm: temurin:${{ inputs.java-version }}
       - run: ./test.sh
-#      - if: ${{ inputs.upload-scoverage-report }}
-#        uses: h8io/gha/actions/upload-scoverage-report
+      - if: ${{ inputs.upload-scoverage-report }}
+        uses: h8io/gha/actions/upload-scoverage-report@v4.0.0-M1
