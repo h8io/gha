@@ -1,0 +1,52 @@
+name: Publish scoverage summary
+author: Eshu
+description: Upload scoverage report as a GitHub artifact
+
+inputs:
+  summary-file:
+    description: Summary filename
+    required: false
+    default: scoverage-summary.md
+  report-path:
+    description: Coverage report directory
+    required: false
+    default: scoverage-report
+  retention-days:
+    description: Artifact retention (days, 1–90)
+    required: false
+    default: "3"
+
+runs:
+  using: composite
+  steps:
+    - name: Collect reports
+      shell: bash
+      run: |
+        set -euo pipefail
+        rm -rf "${{ inputs.report-path }}"
+        mkdir -p "${{ inputs.report-path }}"
+        mapfile -d '' dirs < <(find . -type d -path '*/target/*/scoverage-report' -print0)
+        (( ${#dirs[@]} )) || { echo "No scoverage-report directories found"; exit 1; }  
+        for d in "${dirs[@]}"; do
+          rel="${d#./}"
+          out="${{ inputs.report-path }}/$(printf %s "$rel" | sed -E 's#(^|/)target/#\1#')"
+          mkdir -p "$out"
+          rsync -a --delete "$d/" "$out/"
+          echo "Copied: $d -> $out"
+        done
+    - name: Create scoverage summary
+      shell: bash
+      run: |
+        set -euo pipefail
+        shopt -s globstar
+        summary_path="${{ inputs.report-path }}/${{ inputs.summary-file }}"
+        mkdir -p "$(dirname "$summary_path")"
+        echo "# ${GITHUB_HEAD_REF:-$GITHUB_REF_NAME} @ ${GITHUB_SHA}" > "$summary_path"
+        cat $(ls ./**/target/**/scoverage-summary/gfm.md | sort) >> "$summary_path"
+    - name: Upload coverage artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: scoverage-report
+        path: ${{ inputs.report-path }}
+        retention-days: ${{ inputs.retention-days }}
+        if-no-files-found: error

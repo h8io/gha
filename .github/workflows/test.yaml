@@ -13,14 +13,13 @@ on:
         description: Is this project an SBT plugin?
         type: boolean
         default: false
-      publish-scoverage-summary:
-        description: Publish Scoverage summary as a comment to the PR?
+      upload-scoverage-report:
+        description: Upload scoverage report as a GitHub artefact?
         type: boolean
         default: true
 
 permissions:
   contents: read
-  pull-requests: write
 
 concurrency:
   group: gha:test~${{ github.repository }}~${{ github.workflow }}~${{ github.ref }}
@@ -38,7 +37,5 @@ jobs:
           apps: sbt
           jvm: temurin:${{ inputs.java-version }}
       - run: ./test.sh
-      - if: ${{ inputs.publish-scoverage-summary }}
-        uses: h8io/gha/actions/publish-scoverage-summary@v3
-        with:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+#      - if: ${{ inputs.upload-scoverage-report }}
+#        uses: h8io/gha/actions/upload-scoverage-report
