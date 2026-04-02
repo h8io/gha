@@ -5,7 +5,7 @@ description: Create floating major and minor tags
 runs:
   using: composite
   steps:
-    - uses: actions/checkout@v5
+    - uses: actions/checkout@v6
       with:
         fetch-depth: 0
     - shell: bash
