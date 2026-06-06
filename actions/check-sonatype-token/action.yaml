@@ -24,7 +24,7 @@ runs:
             echo "Sonatype credentials are INVALID (401 Unauthorized)" >&2
             exit 1
             ;;
-          200|400|404)
+          200|400|403|404)
             echo "Sonatype credentials look OK (no 401)."
             ;;
           *)
