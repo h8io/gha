@@ -9,6 +9,14 @@ on:
         description: Java version
         type: number
         default: 17
+      debug:
+        description: Enable debug mode for troubleshooting
+        type: boolean
+        default: false
+      verbose:
+        description: Enable verbose output for debugging
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -52,7 +60,9 @@ jobs:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: sbt +clean +test ci-release
+        run: |
+          set -o pipefail
+          sbt +clean +test ci-release ${{ inputs.debug && '-debug' || '' }} ${{ inputs.verbose && '-v' || '' }}
 
       - name: Create GitHub release
         env:
