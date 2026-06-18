@@ -62,7 +62,7 @@ jobs:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
         run: |
           set -o pipefail
-          sbt "+cleanFull; +test; ci-release" ${{ inputs.debug && '-debug' || '' }} ${{ inputs.verbose && '-v' || '' }}
+          sbt "cleanFull; +test; ci-release" ${{ inputs.debug && '-debug' || '' }} ${{ inputs.verbose && '-v' || '' }}
 
       - name: Create GitHub release
         env:
