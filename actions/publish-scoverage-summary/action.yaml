@@ -31,40 +31,35 @@ runs:
       run: |
         set -euo pipefail
         shopt -s globstar nullglob
-        SUMMARIES=(./**/target/**/scoverage-summary/gfm.md)
-        mapfile -d '' REPORTS < <(find . -type d -path '*/target/*/scoverage-report' -print0)
-        echo "summaries=${#SUMMARIES[@]}" >> "$GITHUB_OUTPUT"
-        echo "reports=${#REPORTS[@]}" >> "$GITHUB_OUTPUT"
-        echo "Found ${#SUMMARIES[@]} summary file(s) and ${#REPORTS[@]} report directory(ies)"
-        if (( ${#SUMMARIES[@]} == 0 && ${#REPORTS[@]} == 0 )); then
+        summaries=(./**/target/**/scoverage-summary/gfm.md)
+        mapfile -d '' reports < <(find . -type d -path '*/target/*/scoverage-report' -print0)
+        echo "summaries=${#summaries[@]}" >> "$GITHUB_OUTPUT"
+        echo "reports=${#reports[@]}" >> "$GITHUB_OUTPUT"
+        echo "Found ${#summaries[@]} summary file(s) and ${#reports[@]} report directory(ies)"
+        if (( ${#summaries[@]} == 0 && ${#reports[@]} == 0 )); then
           echo "::warning::No scoverage output found, nothing to publish"
         fi
     - name: Create scoverage summary
       if: ${{ github.event.pull_request && steps.scoverage.outputs.summaries != '0' }}
       shell: bash
-      env:
-        SUMMARY_FILE: ${{ inputs.summary-file }}
-        HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       run: |
         set -euo pipefail
         shopt -s globstar nullglob
-        SUMMARIES=(./**/target/**/scoverage-summary/gfm.md)
-        mapfile -t SORTED < <(printf '%s\n' "${SUMMARIES[@]}" | sort)
-        echo "# $HEAD_SHA" > "$SUMMARY_FILE"
-        cat "${SORTED[@]}" >> "$SUMMARY_FILE"
+        summaries=(./**/target/**/scoverage-summary/gfm.md)
+        mapfile -t sorted < <(printf '%s\n' "${summaries[@]}" | sort)
+        echo "# ${{ github.event.pull_request.head.sha }}" > "${{ inputs.summary-file }}"
+        cat "${sorted[@]}" >> "${{ inputs.summary-file }}"
     - name: Collect reports
       if: ${{ steps.scoverage.outputs.reports != '0' }}
       shell: bash
-      env:
-        REPORT_PATH: ${{ inputs.report-path }}
       run: |
         set -euo pipefail
-        rm -rf "$REPORT_PATH"
-        mkdir -p "$REPORT_PATH"
+        rm -rf "${{ inputs.report-path }}"
+        mkdir -p "${{ inputs.report-path }}"
         mapfile -d '' dirs < <(find . -type d -path '*/target/*/scoverage-report' -print0)
         for d in "${dirs[@]}"; do
           rel="${d#./}"
-          out="$REPORT_PATH/$(printf %s "$rel" | sed -E 's#(^|/)target/#\1#')"
+          out="${{ inputs.report-path }}/$(printf %s "$rel" | sed -E 's#(^|/)target/#\1#')"
           mkdir -p "$out"
           rsync -a --delete "$d/" "$out/"
           echo "Copied: $d -> $out"
@@ -81,21 +76,14 @@ runs:
       shell: bash
       env:
         GITHUB_TOKEN: ${{ inputs.GITHUB_TOKEN }}
-        SUMMARY_FILE: ${{ inputs.summary-file }}
-        REPORTS: ${{ steps.scoverage.outputs.reports }}
-        RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-        PR_NUMBER: ${{ github.event.pull_request.number }}
       run: |
         set -euo pipefail
         if [ -z "${GITHUB_TOKEN:-}" ]; then
           echo "GitHub token undefined or empty" >&2
           exit 1
         fi
-        # The link is only worth adding when there is an artifact behind it
-        if [ "$REPORTS" != "0" ]; then
-          {
-            echo
-            echo "[Download full HTML report]($RUN_URL#artifacts)"
-          } >> "$SUMMARY_FILE"
-        fi
-        gh pr comment "$PR_NUMBER" --body-file "$SUMMARY_FILE"
+        {
+          echo
+          echo "[Download full HTML report](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}#artifacts)"
+        } >> "${{ inputs.summary-file }}"
+        gh pr comment "${{ github.event.pull_request.number }}" --body-file "${{ inputs.summary-file }}"
