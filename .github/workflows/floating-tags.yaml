@@ -12,4 +12,8 @@ jobs:
   floating-tags:
     runs-on: ubuntu-latest
     steps:
-      - uses: h8io/gha/actions/floating-tags@v2
+      # Keep this at least one major behind, never on the series being released. This workflow runs on the push of
+      # the very tag whose aliases it creates, so a reference to that series resolves to nothing: the alias appears
+      # seconds later, as the result of this run. The job would fail, the alias would never be created, and the next
+      # patch tag would fail identically.
+      - uses: h8io/gha/actions/floating-tags@v5
