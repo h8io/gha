@@ -38,7 +38,10 @@ jobs:
           apps: sbt
           jvm: temurin:${{ inputs.java-version }}
       - run: ./test.sh
-      - if: ${{ inputs.publish-scoverage-summary }}
-        uses: h8io/gha/actions/publish-scoverage-summary@v3
+      # A build may fail on a coverage gate, and the report explaining why it failed is exactly what has to reach the
+      # pull request. A plain `if: ${{ inputs.publish-scoverage-summary }}` still carries the implicit `success()`,
+      # so the comment would never appear in that case; `!cancelled()` drops it while keeping cancelled runs silent.
+      - if: ${{ !cancelled() && inputs.publish-scoverage-summary }}
+        uses: h8io/gha/actions/publish-scoverage-summary@v4
         with:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
