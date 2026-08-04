@@ -60,6 +60,10 @@ as long as `release.yaml` spelled out `cleanFull`.
 Each workflow declares its own `permissions`; `test.yaml` needs `pull-requests: write` purely to post the
 coverage comment.
 
+`timeout-minutes` is a ceiling for a job that has hung, not a budget for one that is working, so it belongs
+several times above the typical run rather than just above it. A caller should normally inherit the default
+and only pass its own when a build is genuinely unlike the rest.
+
 ### Documentation is deployed by the release, not next to it
 
 A tag push used to start the release and the site deployment as two unrelated workflows, so a release that
