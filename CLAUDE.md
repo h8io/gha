@@ -44,17 +44,17 @@ that workflow to the series being released, or the fix ships dead.
 Everything moves together under one tag, so workflows and actions cannot be versioned independently.
 
 Every entry point that builds anything does it by running a script from the caller's root, named after the
-workflow that runs it: `./test.sh`, `./release.sh`. The caller owns the build and the build tool; this repo
-provides the runner, the Coursier cache, the JVM, the secrets and the policy around them. No sbt command is
-written down here, and none should be — that is what pinned `stages` to the `v3` series for as long as
-`release.yaml` spelled out `cleanFull`.
+workflow that runs it: `./test.sh`, `./release.sh`, `./snapshot.sh`. The caller owns the build and the build
+tool; this repo provides the runner, the Coursier cache, the JVM, the secrets and the policy around them. No
+sbt command is written down here, and none should be — that is what pinned `stages` to the `v3` series for
+as long as `release.yaml` spelled out `cleanFull`.
 
 - `test.yaml` runs `./test.sh`, then invokes `publish-scoverage-summary`, which expects
   `sbt-scoverage-summary` to have produced `**/target/**/scoverage-summary/gfm.md`.
 - `release.yaml` refuses to release unless the pushed tag points at the exact commit of the default
   branch, then runs `./release.sh`. With `publish-pages` on, that script is also expected to leave the
-  documentation site in `target/pages`. It needs the PGP and Sonatype secrets, which are passed through
-  `secrets: inherit` from the caller.
+  documentation site in `target/pages`. `snapshot.yaml` runs `./snapshot.sh`. Both need the PGP and
+  Sonatype secrets, which are passed through `secrets: inherit` from the caller.
 - `scala-steward.yaml` authenticates as a GitHub App (`H8IO_APP_ID` / `H8IO_APP_PK`), not as a user.
 
 Each workflow declares its own `permissions`; `test.yaml` needs `pull-requests: write` purely to post the
