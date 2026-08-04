@@ -2,9 +2,11 @@ on:
   workflow_call:
     inputs:
       timeout-minutes:
+        # A ceiling for a job that has hung, not a budget for one that is working. Five was neither: `stages` runs
+        # for four and a half minutes and was being killed on any slow day.
         description: Maximum time (in minutes) before the job is canceled
         type: number
-        default: 5
+        default: 15
       java-version:
         description: Java version
         type: number
