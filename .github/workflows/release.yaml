@@ -84,10 +84,10 @@ jobs:
     if: ${{ inputs.publish-pages }}
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    # No `permissions:` here on purpose. Declaring them makes the called workflow *request* them, and that request is
+    # validated when the file is parsed — before `if:` is evaluated, so a caller with `publish-pages` off failed to
+    # start at all rather than skipping this job. Inheriting instead means only callers that deploy have to grant
+    # `pages: write` and `id-token: write`, which they already do.
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
