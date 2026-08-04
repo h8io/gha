@@ -9,22 +9,17 @@ on:
         description: Java version
         type: number
         default: 17
-      debug:
-        description: Enable debug mode for troubleshooting
+      publish-pages:
+        description: Deploy the documentation site left in target/pages by ./release.sh to GitHub Pages?
         type: boolean
         default: false
-      verbose:
-        description: Enable verbose output for debugging
-        type: boolean
-        default: false
-
-permissions:
-  contents: write
 
 jobs:
   release:
     runs-on: ubuntu-latest
     timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: write
     steps:
       - name: Check Sonatype token
         uses: h8io/gha/actions/check-sonatype-token@v5
@@ -60,9 +55,19 @@ jobs:
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
-        run: |
-          set -o pipefail
-          sbt  ${{ inputs.debug && '-debug' || '' }} ${{ inputs.verbose && '-v' || '' }} "cleanFull; +test; ci-release"
+        run: ./release.sh
+
+      # The site comes out of the same script, and the same build, that published the artifact, so all that is left
+      # here is to carry it over to the deployment job. This step is where the ordering is enforced: it is an ordinary
+      # step with the implicit `success()`, so a release that failed uploads nothing and `pages` finds nothing to
+      # deploy.
+      - name: Upload the documentation site
+        if: ${{ inputs.publish-pages }}
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: target/pages
+          # Long enough that re-running the deployment job on its own stays an option for a while after the release.
+          retention-days: 7
 
       - name: Create GitHub release
         env:
@@ -70,3 +75,28 @@ jobs:
         run: |
           TAG="${GITHUB_REF#refs/tags/}"
           gh release create "$TAG" --title "$TAG" --generate-notes --latest
+
+  # The deployment is a job of this workflow rather than a workflow of its own because `needs:` orders jobs within one
+  # workflow file and nothing orders two workflows started by the same tag. Its permissions are declared on the job
+  # instead of the workflow, so that a caller leaving `publish-pages` off never has to grant them.
+  pages:
+    needs: release
+    if: ${{ inputs.publish-pages }}
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ inputs.timeout-minutes }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    # A repository has a single Pages site, so two deployments must not overlap. Cancelling the one already running is
+    # not the way to achieve that here: it belongs to a release that has already succeeded, and cancelling it leaves
+    # the site on the previous version while the release reports success.
+    concurrency:
+      group: gha:pages~${{ github.repository }}
+      cancel-in-progress: false
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
