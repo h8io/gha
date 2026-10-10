@@ -49,6 +49,10 @@ jobs:
           apps: sbt
           jvm: temurin:${{ inputs.java-version }}
 
+      - uses: actions/setup-node@v7
+        with:
+          node-version: lts/*
+
       - name: Release to Maven Central
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}

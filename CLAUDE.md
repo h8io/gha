@@ -49,6 +49,9 @@ tool; this repo provides the runner, the Coursier cache, the JVM, the secrets an
 sbt command is written down here, and none should be — that is what pinned `stages` to the `v3` series for
 as long as `release.yaml` spelled out `cleanFull`.
 
+`test.yaml` and `release.yaml` also set up the latest Node.js LTS, unconditionally: documentation sites are built with
+Docusaurus, which `./test.sh` and `./release.sh` run alongside sbt.
+
 - `test.yaml` runs `./test.sh`, then invokes `publish-scoverage-summary`, which expects
   `sbt-scoverage-summary` to have produced `**/target/**/scoverage-summary/gfm.md`.
 - `release.yaml` refuses to release unless the pushed tag points at the exact commit of the default
@@ -70,7 +73,7 @@ A tag push used to start the release and the site deployment as two unrelated wo
 failed — wrong tag, expired Sonatype token, red `+test` — still left the site describing a version that
 never reached Maven Central, and with the site unversioned there was nothing to fall back to.
 
-The site is therefore built by the same `./release.sh`, in the same sbt run, that publishes the artifact. A
+The site is therefore built by the same `./release.sh` that publishes the artifact, ahead of the publishing step. A
 separate workflow would mean a second checkout, a second JVM and a second full build, producing
 documentation for a commit the first build has already compiled. What is left for this repo is to upload
 `target/pages` and deploy it from a job that `needs: release`. The upload is an ordinary step carrying the
